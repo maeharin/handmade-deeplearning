@@ -100,12 +100,36 @@ func (nn *NeuralNet) Train(inputs []float64, targets []float64) {
 	fmt.Printf("errors: %v\n", errors)
 
 	// 誤差を逆伝播させてニューラルネットの重みを更新する
+	// 参考:
+	// https://github.com/goml/gobrain/blob/master/feedforward.go
+	// 以下はgonum使ってる
+	// https://github.com/dwhitena/gophernet/blob/master/main.go
+	// ??
+	// https://github.com/gorgonia/gorgonia
 
 	// wHOを更新
 	// wHO => Eを最小化する方向に向かってwHOを更新する
 	// つまりdE/dwHO（wHOと最終誤差の変化率、傾き）を求めて、それを0に学習率分近づける
 	// この重み更新分をdWとすると
 	// dW := nn.learningRate * (errors * finalOutputs * (1-finalOutputs)) dot hiddenOutpus.T)
+	tmp := make([]float64, len(errors))
+	for i, e := range errors {
+		tmp[i] = e * finalOutputs[i] * (1 - finalOutputs[i])
+	}
+	transpose := func(arr []float64) [][]float64 {
+		res := make([][]float64, len(arr))
+		for i, v := range arr {
+			res[i] = []float64{v}
+		}
+		return res
+	}
+	hiddenOutputsT := transpose(hiddenOutpus)
+	fmt.Println("-----------------")
+	fmt.Printf("tmp: %v\n", tmp)
+	fmt.Printf("hiddenOutputsT: %v\n", hiddenOutputsT)
+	fmt.Println("-----------------")
+	// うーん。。。次元が合わない。。。????
+	tmp = Dot(tmp, hiddenOutputsT)
 
 
 

@@ -31,6 +31,7 @@ def matmul(x, w)
   res
 end
 
+# うーんどういう関数にすべきか
 # (, 2) . (3, ) => (2,3)
 def vv(v1, v2)
   vt = [v1].transpose
@@ -41,7 +42,8 @@ def vv(v1, v2)
   end
 end
 
-# todo: lr
+
+# 学習率と勾配で更新した重みを返す
 def mat_minus(w, dw, lr)
   w.zip(dw).map do |a,b|
     a.zip(b).map do |c,d|

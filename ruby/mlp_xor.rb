@@ -6,20 +6,6 @@
 require 'pp'
 require './util'
 
-# AND
-#X = [
-#  [1,1],
-#  [1,0],
-#  [0,1],
-#  [0,0],
-#]
-#T = [
-#  1,
-#  0,
-#  0,
-#  0,
-#]
-
 # XOR
 X = [
   [0,1],
@@ -115,6 +101,7 @@ p "b2: #{b2}"
   end
 end
 
+# 注意: trainのところと同じになるように
 def pred(x, w1, w2, b1, b2)
     u1 = matmul(x, w1)
     u1 = u1.zip(b1).map { |u,b| u + b }

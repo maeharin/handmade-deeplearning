@@ -11,7 +11,7 @@ def sigmoid(x)
 end
 
 def deriv_sigmoid(x)
-  sigmoid(x) + (1 - sigmoid(x))
+  sigmoid(x) * (1 - sigmoid(x))
 end
 
 # x: vector

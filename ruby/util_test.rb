@@ -23,10 +23,13 @@ assert(deriv_relu(2), 1)
 assert(deriv_relu(0), 0)
 assert(deriv_relu(-1), 0)
 
-p "test sigmoidj"
+p "test sigmoid"
 assert(sigmoid(1000), 1.0)
 assert(sigmoid(0), 0.5)
 assert(sigmoid(-1000), 0.0)
+
+p "test deriv_sigmoid"
+assert(deriv_sigmoid(0), 0.25)
 
 p "test matmul"
 x = [1, 2]

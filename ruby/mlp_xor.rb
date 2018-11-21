@@ -66,6 +66,7 @@ p "b1: #{b1}"
 p "w2: #{w2}"
 p "b2: #{b2}"
 
+
 (0..3000).each do |epoch|
   X.zip(T).each do |x, t|
     # forward

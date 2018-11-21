@@ -65,3 +65,82 @@ func TestMatmul(t *testing.T) {
 		t.Errorf("expected: %v but %v", expected, actual)
 	}
 }
+
+func TestTranspose(t *testing.T) {
+	w := [][]float64 {
+		{1,2,3},
+		{4,5,6},
+	}
+	actual := Transpose(w)
+	expected := [][]float64 {
+		{1, 4},
+		{2, 5},
+		{3, 6},
+	}
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("expected: %v but %v", expected, actual)
+	}
+}
+
+func TestVv(t *testing.T) {
+	a := []float64{1, 2}
+	b := []float64{10, 20, 30}
+	actual := Vv(a, b)
+	expected := [][]float64 {
+		{10, 20, 30},
+		{20, 40, 60},
+	}
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("expected: %v but %v", expected, actual)
+	}
+}
+
+// a = [
+//  [1,2,3],
+//  [4,5,6]
+//]
+//b = [
+//  [1,2,3],
+//  [4,5,6]
+//]
+//lr = 0.1
+//# 1 - 1 * 0.1 = 0.9
+//# 2 - 2 * 0.1 = 1.8
+//# 3 - 3 * 0.1 = 2.7
+//# 4 - 4 * 0.1 = 3.6
+//# 5 - 5 * 0.1 = 4.5
+//# 6 - 6 * 0.1 = 5.4
+//assert(mat_minus(a, b, lr), [
+//  [0.9, 1.8, 2.7],
+//  [3.6, 4.5, 5.4]
+//])
+func TestUpdateWeight(t *testing.T) {
+	w := [][]float64{
+		{1,2,3},
+		{4,5,6},
+	}
+	dw := [][]float64{
+		{1,2,3},
+		{4,5,6},
+	}
+	lr := 0.1
+	actual := UpdateWeight(w, dw, lr)
+	expected := [][]float64 {
+		{0.9, 1.8, 2.7},
+		{3.6, 4.5, 5.4},
+	}
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("expected: %v but %v", expected, actual)
+	}
+}
+
+func TestUpdateBias(t *testing.T) {
+	b := []float64{1,2,3}
+	db := []float64{1,2,3}
+	lr := 0.1
+	actual := UpdateBias(b, db, lr)
+	expected := []float64{0.9, 1.8, 2.7}
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("expected: %v but %v", expected, actual)
+	}
+}

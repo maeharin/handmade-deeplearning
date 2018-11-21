@@ -51,3 +51,25 @@ func CreateBias(outDim int) []float64 {
 	}
 	return b
 }
+
+// [x0, x1]
+// *
+// [
+//   [w00, w01, w02],
+//   [w10, w11, w12]
+// ]
+// =>
+// [u0, u1, u2]
+//
+func Matmul(x []float64, w [][]float64) []float64 {
+	inDim := len(x)
+	outDim := len(w[0])
+	res := make([]float64, outDim)
+	for i := 0; i < outDim; i++ {
+		res[i] = 0
+		for j := 0; j < inDim; j++ {
+			res[i] += x[j] * w[j][i]
+		}
+	}
+	return res
+}

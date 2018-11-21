@@ -1,6 +1,7 @@
 package main
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -49,5 +50,18 @@ func TestDerivRelu(t *testing.T) {
 		if actual != expected {
 			t.Errorf("expected: %v but %v", expected, actual)
 		}
+	}
+}
+
+func TestMatmul(t *testing.T) {
+	x := []float64{1,2}
+	w := [][]float64{
+		{10, 20, 30},
+		{100,200,300},
+	}
+	actual := Matmul(x, w)
+	expected := []float64 {210, 420, 630}
+	if !reflect.DeepEqual(actual, expected) {
+		t.Errorf("expected: %v but %v", expected, actual)
 	}
 }

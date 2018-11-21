@@ -25,15 +25,34 @@ func main() {
 	b1 := CreateBias(8)
 	w2 := CreateWeight(8, 1)
 	b2 := CreateBias(1)
-	fmt.Println(w1)
-	fmt.Println(b1)
-	fmt.Println(w2)
-	fmt.Println(b2)
 
 	for i := 0; i < len(xTrain); i++ {
 		x := xTrain[i]
 		t := tTrain[i]
-		fmt.Println(x, t)
+		fmt.Println(x)
+		fmt.Println(t)
+
+		// forward...
+		u1 := Matmul(x, w1)
+		for i, u := range(u1) {
+			u1[i] = u + b1[i]
+		}
+		h1 := make([]float64, len(u1))
+		for i, u := range(u1) {
+			h1[i] = Relu(u)
+		}
+
+		u2 := Matmul(h1, w2)
+		for i, u := range(u2) {
+			u2[i] = u + b2[i]
+		}
+		y := make([]float64, len(u2))
+		for i, u := range(u2) {
+			y[i] = Sigmoid(u)
+		}
+
+		fmt.Println(y)
+		// todo: backword
 	}
 }
 

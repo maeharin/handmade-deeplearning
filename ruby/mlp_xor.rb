@@ -89,7 +89,6 @@ p "b2: #{b2}"
     # 勾配
     dw1 = vv(x, delta1)
     dw2 = vv(h1, delta2)
-    # うーん。。。。ここはどうなるのか
     db1 = delta1
     db2 = delta2
 

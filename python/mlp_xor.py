@@ -51,10 +51,10 @@ for epoch in range(0, 3000):
 
         # 重み更新　
         lr = 0.05
-        w2 = w2 - lr * dW2
-        w1 = w1 - lr * dW1
-        b2 = b2 - lr * db2
-        b1 = b1 - lr * db1
+        w2 -= lr * dW2
+        w1 -= lr * dW1
+        b2 -= lr * db2
+        b1 -= lr * db1
 
 
 # pred
@@ -67,7 +67,21 @@ for x in X:
 # gradient checking
 #
 
-# backprop
+# np.logでdivide by zero encountered in logエラーが出るのを回避するためのヘルパ
+# aの最小値を決めて分母が0になるのを避ける
+def np_log(a):
+    return np.log(np.clip(a, 0.0000001, a))
+
+# 2値分類なので、尤度関数 = y(t) * (1-y)(1-t) yは確率。t={0,1}
+# この尤度関数を最大化したい => 積は面倒なのでlogをとって和の関数にする。符号をマイナスに
+# cost = log(y(t) * (1-y)(1-t))
+# cost = log(y(t)) + log((1-y)(1-t))
+# cost = {t*log(y) + (1-t)*log(1-y)}
+# cost = t*log(y) + (1-t)*log(1-y)}
+# cost = - { t*log(y) + (1-t)*log(1-y)} }
+def calc_cost(t, y):
+    return - (t * np_log(y) + (1 - t) * np_log(1 - y))
+
 w1 = np.random.uniform(-0.08, 0.08, (2, 8)).astype('float32')
 b1 = np.zeros(8).astype('float32')
 w2 = np.random.uniform(-0.08, 0.08, (8, 1)).astype('float32')
@@ -86,67 +100,67 @@ for x, t in zip(X, T):
     db2 = delta2
     db1 = delta1
 
-    # 重み更新　
-    lr = 0.05
-    w2 = w2 - lr * dW2
-    w1 = w1 - lr * dW1
-    b2 = b2 - lr * db2
-    b1 = b1 - lr * db1
+    # 勾配を比較するので、重み更新は行わず、数値微分へ
 
-# np.logでdivide by zero encountered in logエラーが出るのを回避するためのヘルパ
-# aの最小値を決めて分母が0になるのを避ける
-def np_log(a):
-    return np.log(np.clip(a, 0.0000001, a))
-
-n_w1 = np.random.uniform(-0.08, 0.08, (2, 8)).astype('float32')
-n_b1 = np.zeros(8).astype('float32')
-n_w2 = np.random.uniform(-0.08, 0.08, (8, 1)).astype('float32')
-n_b2 = np.zeros(1).astype('float32')
-for x, t in zip(X, T):
+    #
     # numerical grad
-    # - コスト関数を定義
-    # 2値分類なので、尤度関数 = y(t) * (1-y)(1-t) yは確率。t={0,1}
-    # この尤度関数を最大化したい => 積は面倒なのでlogをとって和の関数にする。符号をマイナスに
-    # cost = log(y(t) * (1-y)(1-t))
-    # cost = log(y(t)) + log((1-y)(1-t))
-    # cost = {t*log(y) + (1-t)*log(1-y)}
-    # cost = t*log(y) + (1-t)*log(1-y)}
-    # cost = - { t*log(y) + (1-t)*log(1-y)} }
-    def calc_cost(t, y):
-        return - (t * np_log(y) + (1 - t) * np_log(1 - y))
+    #
 
     # forward
-    _, _, _, y = forward(x, n_w1, n_b1, n_w2, n_b2)
+    _, _, _, y = forward(x, w1, b1, w2, b2)
     cost = calc_cost(t, y)
 
-    # - コスト関数をw1,b1,w2,b2でそれぞれ数値微分（-eps, +epsでそれぞれ計算する）して勾配を求める
-    eps = 0.0000001
+    # - コスト関数をw1,b1,w2,b2でそれぞれ数値微分（+hでそれぞれ計算する）して勾配を求める
+    h = 1e-4 # 0.0001
 
-    # dcost / dw1
-    _, _, _, y = forward(x, n_w1 + eps, n_b1, n_w2, n_b2)
-    cost_eps = calc_cost(t, y)
-    dw1 = (cost + cost_eps) / eps
-    # dcost / db1
-    _, _, _, y = forward(x, n_w1, n_b1 + eps, n_w2, n_b2)
-    cost_eps = calc_cost(t, y)
-    db1 = (cost + cost_eps) / eps
-    # dcost / dw2
-    _, _, _, y = forward(x, n_w1, n_b1, n_w2 + eps, n_b2)
-    cost_eps = calc_cost(t, y)
-    dw2 = (cost + cost_eps) / eps
-    # dcost / db2
-    _, _, _, y = forward(x, n_w1, n_b1, n_w2, n_b2 + eps)
-    cost_eps = calc_cost(t, y)
-    db2 = (cost + cost_eps) / eps
+    # w1
+    # w1（行列）の値を一個ずつ+hで微分していく
+    n_dW1 = np.zeros_like(w1)
+    for i, w1_row in enumerate(w1):
+        for j, _ in enumerate(w1_row):
+            # i,jの位置の値だけ+hした重みで予測をしてcost_hを取得し、上述のcostとの差をとって微分
+            w1_tmp = w1.copy()
+            w1_tmp[i][j] += h
+            _, _, _, y = forward(x, w1_tmp, b1, w2, b2)
+            cost_h = calc_cost(t, y)
+            n_dW1[i][j] = (cost_h - cost) / h
 
-    # - 重みバイアスを更新するk
-    lr = 0.05
-    n_w1 = n_w1 - lr * dw1
-    n_b1 = n_b1 - lr * db1
-    n_w2 = n_w2 - lr * dw2
-    n_b2 = n_b2 - lr * db2
+    # db1
+    n_db1 = np.zeros_like(b1)
+    for i, _ in enumerate(b1):
+        b1_tmp = b1.copy()
+        b1_tmp[i] += h
+        _, _, _, y = forward(x, w1, b1_tmp, w2, b2)
+        cost_h = calc_cost(t, y)
+        n_db1[i] = (cost_h - cost) / h
+
+    # dw2
+    n_dW2 = np.zeros_like(w2)
+    for i, w2_row in enumerate(w2):
+        for j, _ in enumerate(w2_row):
+            w2_tmp = w2.copy()
+            w2_tmp[i][j] += h
+            _, _, _, y = forward(x, w1, b1, w2_tmp, b2)
+            cost_h = calc_cost(t, y)
+            n_dW2[i][j] = (cost_h - cost) / h
+
+    # db2
+    n_db2 = np.zeros_like(b2)
+    for i, _ in enumerate(b2):
+        b2_tmp = b2.copy()
+        b2_tmp[i] += h
+        _, _, _, y = forward(x, w1, b1, w2, b2_tmp)
+        cost_h = calc_cost(t, y)
+        n_db2[i] = (cost_h - cost) / h
+
+    print("dW1:", dW1)
+    print("n_dW1:", n_dW1)
+    print("db1:", db1)
+    print("n_db1:", n_db1)
+    print("dW2:", dW2)
+    print("n_dW2:", n_dW2)
+    print("db2:", db2)
+    print("n_db2:", n_db2)
 
 
-# backpropで更新した重みバイアスと、数値微分で更新した重みバイアスを比較
-print("w1", w1)
-print("n_w1", n_w1)
+

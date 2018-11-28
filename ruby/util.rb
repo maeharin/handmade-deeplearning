@@ -14,6 +14,20 @@ def deriv_sigmoid(x)
   sigmoid(x) * (1 - sigmoid(x))
 end
 
+def create_weight(in_dim, out_dim, r)
+  (0...in_dim).map do |_|
+    (0...out_dim).map do |_|
+      r.rand(-0.08..0.08)
+    end
+  end
+end
+
+def create_bias(out_dim, r)
+  (0...out_dim).map do |_|
+    r.rand(-0.08..0.08)
+  end
+end
+
 # x: vector
 # w: matrix
 def matmul(x, w)
@@ -21,9 +35,9 @@ def matmul(x, w)
   out_dim = w[0].count
 
   res = []
-  (0..out_dim - 1).each do |i|
+  (0...out_dim).each do |i|
     sum = 0
-    (0..in_dim - 1).each do |j|
+    (0...in_dim).each do |j|
       sum += x[j] * w[j][i]
     end
     res << sum

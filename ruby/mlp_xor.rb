@@ -1,5 +1,4 @@
 #
-# 2layer multi parceptron layer
 # XOR classifier
 #
 
@@ -14,72 +13,38 @@ X = [
   [1,1]
 ]
 T = [
-  1,
-  1,
-  0,
-  0
+  [1],
+  [1],
+  [0],
+  [0]
 ]
 
-# 重み初期化
-# todo うーん。。。ランダムのシード値によって学習できるかどうかが変わってくるなぁ。。。。
 RSEED = 34
 r = Random.new(RSEED)
+w1 = create_weight(2, 8, r)
+b1 = create_bias(8, r)
+w2 = create_weight(8, 1, r)
+b2 = create_bias(1, r)
 
-w1_in_dim = 2
-w1_out_dim = 8
-p "w1 shape: (#{w1_in_dim},#{w1_out_dim})"
-w1 = []
-(0..w1_in_dim - 1).each do |i|
-  (0..w1_out_dim - 1).each do |j|
-    w1[i] = [] if w1[i].nil?
-    w1[i][j] = r.rand(-0.08..0.08)
-  end
+# 注意: trainのところと同じになるように
+def forward(x, w1, w2, b1, b2)
+  u1 = matmul(x, w1)
+  u1 = u1.zip(b1).map { |u,b| u + b }
+  h1 = u1.map {|v| relu(v) }
+  u2 = matmul(h1, w2)
+  u2 = u2.zip(b2).map { |u,b| u + b }
+  y = u2.map {|v| sigmoid(v)}
+  [u1, h1, u2, y]
 end
 
-# b1: (,8)
-b1 = []
-(0..w1_out_dim - 1).each do |i|
-  b1[i] = 0
-end
-
-# w2: (8,1)
-w2_in_dim = 8
-w2_out_dim = 1
-p "w2 shape: (#{w2_in_dim},#{w2_out_dim})"
-w2 = []
-(0..w2_in_dim - 1).each do |i|
-  (0..w2_out_dim - 1).each do |j|
-    w2[i] = [] if w2[i].nil?
-    w2[i][j] = r.rand(-0.08..0.08)
-  end
-end
-
-# b2: (,1)
-b2 = []
-(0..w2_out_dim - 1).each do |i|
-  b2[i] = 0
-end
-
-p "initial w, b"
-p "w1: #{w1}"
-p "b1: #{b1}"
-p "w2: #{w2}"
-p "b2: #{b2}"
-
-
-(0..3000).each do |epoch|
+(0...3000).each do |epoch|
   X.zip(T).each do |x, t|
     # forward
-    u1 = matmul(x, w1)
-    u1 = u1.zip(b1).map { |u,b| u + b }
-    h1 = u1.map {|v| relu(v) }
-    u2 = matmul(h1, w2)
-    u2 = u2.zip(b2).map { |u,b| u + b }
-    y = u2.map {|v| sigmoid(v)}
+    u1, h1, u2, y = forward(x, w1, w2, b1, b2)
 
-    # backward
-    # yは配列（要素数1）
-    delta2 = [y[0] - t]
+    # backprop
+    # y,tは配列（要素数1）
+    delta2 = y.zip(t).map { |yy, tt| yy - tt }
     delta1 = begin
       a = matmul(delta2, w2.transpose)
       b = u1.map{ |v| deriv_relu(v) }
@@ -101,19 +66,10 @@ p "b2: #{b2}"
   end
 end
 
-# 注意: trainのところと同じになるように
-def pred(x, w1, w2, b1, b2)
-    u1 = matmul(x, w1)
-    u1 = u1.zip(b1).map { |u,b| u + b }
-    h1 = u1.map {|v| relu(v) }
-    u2 = matmul(h1, w2)
-    u2 = u2.zip(b2).map { |u,b| u + b }
-    y = u2.map {|v| sigmoid(v)}
-    y
-end
 
 
 X.each do |x|
-  y = pred(x, w1, w2, b1, b2)[0]
+  _, _, _, y = forward(x, w1, w2, b1, b2)
+  y = y[0]
   p "#{x}: " + sprintf("%.5f", y)
 end

@@ -31,6 +31,9 @@ assert(sigmoid(-1000), 0.0)
 p "test deriv_sigmoid"
 assert(deriv_sigmoid(0), 0.25)
 
+p "test create_weight"
+assert(deriv_sigmoid(0), 0.25)
+
 p "test matmul"
 x = [1, 2]
 w = [

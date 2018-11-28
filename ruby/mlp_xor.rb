@@ -19,12 +19,11 @@ T = [
   [0]
 ]
 
-RSEED = 34
-r = Random.new(RSEED)
-w1 = create_weight(2, 8, r)
-b1 = create_bias(8, r)
-w2 = create_weight(8, 1, r)
-b2 = create_bias(1, r)
+srand(34)
+w1 = create_weight(2, 8)
+b1 = create_bias(8)
+w2 = create_weight(8, 1)
+b2 = create_bias(1)
 
 # 注意: trainのところと同じになるように
 def forward(x, w1, w2, b1, b2)
@@ -73,3 +72,10 @@ X.each do |x|
   y = y[0]
   p "#{x}: " + sprintf("%.5f", y)
 end
+
+
+# gradient checking
+
+# backpropagation
+
+w1 = create_weight(2, 8)

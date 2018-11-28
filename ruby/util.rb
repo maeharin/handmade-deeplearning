@@ -14,17 +14,17 @@ def deriv_sigmoid(x)
   sigmoid(x) * (1 - sigmoid(x))
 end
 
-def create_weight(in_dim, out_dim, r)
+def create_weight(in_dim, out_dim)
   (0...in_dim).map do |_|
     (0...out_dim).map do |_|
-      r.rand(-0.08..0.08)
+      Random.rand(-0.08..0.08)
     end
   end
 end
 
-def create_bias(out_dim, r)
+def create_bias(out_dim)
   (0...out_dim).map do |_|
-    r.rand(-0.08..0.08)
+    Random.rand(-0.08..0.08)
   end
 end
 

@@ -32,7 +32,15 @@ p "test deriv_sigmoid"
 assert(deriv_sigmoid(0), 0.25)
 
 p "test create_weight"
-assert(deriv_sigmoid(0), 0.25)
+srand(34)
+assert(create_weight(2, 3), [
+    [-0.07383013124779747, 0.044816073567545994, -0.06516739880971555],
+    [0.021262829469433545, -0.07777746419975415, 0.06978536526713984]
+])
+
+p "test create_bias"
+srand(34)
+assert(create_bias(3), [-0.07383013124779747, 0.044816073567545994, -0.06516739880971555])
 
 p "test matmul"
 x = [1, 2]

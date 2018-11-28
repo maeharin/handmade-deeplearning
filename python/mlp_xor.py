@@ -70,7 +70,7 @@ for x in X:
 # np.logでdivide by zero encountered in logエラーが出るのを回避するためのヘルパ
 # aの最小値を決めて分母が0になるのを避ける
 def np_log(a):
-    return np.log(np.clip(a, 0.0000001, a))
+    return np.log(np.clip(a, 1e-10, a))
 
 # 2値分類なので、尤度関数 = y(t) * (1-y)(1-t) yは確率。t={0,1}
 # この尤度関数を最大化したい => 積は面倒なのでlogをとって和の関数にする。符号をマイナスに
@@ -87,6 +87,10 @@ b1 = np.zeros(8).astype('float32')
 w2 = np.random.uniform(-0.08, 0.08, (8, 1)).astype('float32')
 b2 = np.zeros(1).astype('float32')
 for x, t in zip(X, T):
+    #
+    # compute graditents by back propagation
+    #
+
     # forward
     u1, h1, u2, y = forward(x, w1, b1, w2, b2)
 
@@ -100,67 +104,91 @@ for x, t in zip(X, T):
     db2 = delta2
     db1 = delta1
 
-    # 勾配を比較するので、重み更新は行わず、数値微分へ
-
     #
-    # numerical grad
+    # compute graditents by numerical grad
     #
 
     # forward
     _, _, _, y = forward(x, w1, b1, w2, b2)
+
+    # calc numerical grad
+    # コスト関数をw1,b1,w2,b2でそれぞれ数値微分（+hでそれぞれ計算する）して勾配を求める
     cost = calc_cost(t, y)
 
-    # - コスト関数をw1,b1,w2,b2でそれぞれ数値微分（+hでそれぞれ計算する）して勾配を求める
-    h = 1e-4 # 0.0001
+    h = 1e-5 # 0.00001
 
     # w1
-    # w1（行列）の値を一個ずつ+hで微分していく
+    # w1（行列）の値を一個ずつ+h,-hで微分していく
     n_dW1 = np.zeros_like(w1)
     for i, w1_row in enumerate(w1):
         for j, _ in enumerate(w1_row):
             # i,jの位置の値だけ+hした重みで予測をしてcost_hを取得し、上述のcostとの差をとって微分
-            w1_tmp = w1.copy()
-            w1_tmp[i][j] += h
-            _, _, _, y = forward(x, w1_tmp, b1, w2, b2)
-            cost_h = calc_cost(t, y)
-            n_dW1[i][j] = (cost_h - cost) / h
+            tmp = w1[i][j]
+            # plus
+            w1[i][j] = tmp + h
+            _, _, _, y = forward(x, w1, b1, w2, b2)
+            cost_plus = calc_cost(t, y)
+            # minus
+            w1[i][j] = tmp - h
+            _, _, _, y = forward(x, w1, b1, w2, b2)
+            cost_minus = calc_cost(t, y)
+            # grad
+            n_dW1[i][j] = (cost_plus - cost_minus) / (2 * h)
+            w1[i][j] = tmp  # 元に戻す
 
     # db1
     n_db1 = np.zeros_like(b1)
     for i, _ in enumerate(b1):
-        b1_tmp = b1.copy()
-        b1_tmp[i] += h
-        _, _, _, y = forward(x, w1, b1_tmp, w2, b2)
-        cost_h = calc_cost(t, y)
-        n_db1[i] = (cost_h - cost) / h
+        tmp = b1[i]
+        # plus
+        b1[i] = tmp + h
+        _, _, _, y = forward(x, w1, b1, w2, b2)
+        cost_plus = calc_cost(t, y)
+        # minus
+        b1[i] = tmp - h
+        _, _, _, y = forward(x, w1, b1, w2, b2)
+        cost_minus = calc_cost(t, y)
+        # grad
+        n_db1[i] = (cost_plus - cost_minus) / (2 * h)
+        b1[i] = tmp  # 元に戻す
 
     # dw2
     n_dW2 = np.zeros_like(w2)
     for i, w2_row in enumerate(w2):
         for j, _ in enumerate(w2_row):
-            w2_tmp = w2.copy()
-            w2_tmp[i][j] += h
-            _, _, _, y = forward(x, w1, b1, w2_tmp, b2)
-            cost_h = calc_cost(t, y)
-            n_dW2[i][j] = (cost_h - cost) / h
+            tmp = w2[i][j]
+            w2[i][j] = tmp + h
+            _, _, _, y = forward(x, w1, b1, w2, b2)
+            cost_plus = calc_cost(t, y)
+            w2[i][j] = tmp - h
+            _, _, _, y = forward(x, w1, b1, w2, b2)
+            cost_minus = calc_cost(t, y)
+            n_dW2[i][j] = (cost_plus - cost_minus) / (2 * h)
+            w2[i][j] = tmp
 
     # db2
     n_db2 = np.zeros_like(b2)
     for i, _ in enumerate(b2):
-        b2_tmp = b2.copy()
-        b2_tmp[i] += h
-        _, _, _, y = forward(x, w1, b1, w2, b2_tmp)
-        cost_h = calc_cost(t, y)
-        n_db2[i] = (cost_h - cost) / h
+        tmp = b2[i]
+        b2[i] = tmp + h
+        _, _, _, y = forward(x, w1, b1, w2, b2)
+        cost_plus = calc_cost(t, y)
+        b2[i] = tmp - h
+        cost_minus = calc_cost(t, y)
+        n_db2[i] = (cost_plus - cost_minus) / (2 * h)
+        b2[i] = tmp
 
-    print("dW1:", dW1)
-    print("n_dW1:", n_dW1)
-    print("db1:", db1)
-    print("n_db1:", n_db1)
-    print("dW2:", dW2)
-    print("n_dW2:", n_dW2)
-    print("db2:", db2)
-    print("n_db2:", n_db2)
+    #print("dW1:", dW1)
+    #print("n_dW1:", n_dW1)
+    #print("db1:", db1)
+    #print("n_db1:", n_db1)
+    #print("dW2:", dW2)
+    #print("n_dW2:", n_dW2)
+    #print("db2:", db2)
+    #print("n_db2:", n_db2)
+    diff = np.average(np.abs(dW1 - n_dW1))
+    print(diff)
+
 
 
 

@@ -112,9 +112,7 @@ for x, t in zip(X, T):
     _, _, _, y = forward(x, w1, b1, w2, b2)
 
     # calc numerical grad
-    # コスト関数をw1,b1,w2,b2でそれぞれ数値微分（+hでそれぞれ計算する）して勾配を求める
-    cost = calc_cost(t, y)
-
+    # コスト関数をw1,b1,w2,b2でそれぞれ数値微分（+h,-hでそれぞれ計算する）して勾配を求める
     h = 1e-5 # 0.00001
 
     # w1

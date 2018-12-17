@@ -8,3 +8,9 @@ def deriv_relu(x):
 
 def sigmoid(x):
     return 1.0 / (1.0 + np.exp(-x))
+
+def softmax(x):
+    # prevent overflow
+    x -= x.max()
+    e = np.exp(x)
+    return e / np.sum(e)

@@ -19,11 +19,12 @@ T = np.array([
 np.random.seed(34)
 
 # 重み初期化
-w1 = np.random.uniform(-0.08, 0.08, (2, 8)).astype('float32')
+# lecun_uniform
+# http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf
+w1 = np.random.uniform(-np.sqrt(1.0/2), np.sqrt(1.0/2), (2, 8)).astype('float32')
 b1 = np.zeros(8).astype('float32')
-w2 = np.random.uniform(-0.08, 0.08, (8, 1)).astype('float32')
+w2 = np.random.uniform(-np.sqrt(1.0/8), np.sqrt(1.0/8), (8, 1)).astype('float32')
 b2 = np.zeros(1).astype('float32')
-
 
 def forward(x, w1, b1, w2, b2):
     u1 = np.matmul(x, w1) + b1
@@ -185,7 +186,7 @@ for x, t in zip(X, T):
     #print("db2:", db2)
     #print("n_db2:", n_db2)
     diff = np.average(np.abs(dW1 - n_dW1))
-    print(diff)
+    print("diff: %.10f" % diff)
 
 
 

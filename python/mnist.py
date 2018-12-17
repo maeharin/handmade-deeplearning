@@ -10,9 +10,9 @@ x_train = x_train / 255
 x_test = x_test / 255
 
 # init weights and biases
-w1 = np.random.uniform(-0.08, 0.08, (784, 100)).astype('float32')
+w1 = np.random.uniform(-np.sqrt(1.0/784), np.sqrt(1.0/784), (784, 100)).astype('float32')
 b1 = np.zeros(100).astype('float32')
-w2 = np.random.uniform(-0.08, 0.08, (100, 10)).astype('float32')
+w2 = np.random.uniform(-np.sqrt(1.0/100), np.sqrt(1.0/100), (100, 10)).astype('float32')
 b2 = np.zeros(10).astype('float32')
 
 # convert to one-hot

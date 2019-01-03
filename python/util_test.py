@@ -4,7 +4,7 @@ from util import *
 
 np.random.seed(34)
 
-class TestHoge(unittest.TestCase):
+class TestUtil(unittest.TestCase):
     def test_relu(self):
         actual = relu(np.array([2, 0, -1]))
         expect = np.array([2, 0, 0])

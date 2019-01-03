@@ -19,11 +19,10 @@ b2 = np.zeros(10).astype('float32')
 t_train = np.eye(10)[t_train]
 
 # loop epoch
-epochs = 1
+epochs = 2
 print("start train...epochs: {}".format(epochs))
 for epoch in range(epochs):
-    # todo: shffule
-    x_train, t_train = x_train, t_train
+    x_train, t_train = shuffle(x_train, t_train)
 
     # train
     for x, t in zip(x_train, t_train):

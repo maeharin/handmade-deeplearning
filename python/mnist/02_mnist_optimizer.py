@@ -1,4 +1,3 @@
-import numpy as np
 from util import *
 from mnist_loader import load_mnist
 from sklearn.model_selection import train_test_split

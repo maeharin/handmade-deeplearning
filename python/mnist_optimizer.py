@@ -84,16 +84,16 @@ class AdaGrad:
 
         # 勾配の二乗を加算していく
         self.h_w1 = self.h_w1 + dw1 * dw1
-        w1 = w1 - self.lr * (1 / (np.sqrt(self.h_w1) + 1e-7)) * dw1
+        w1 = w1 - self.lr * dw1 / (np.sqrt(self.h_w1) + 1e-7)
 
         self.h_w2 = self.h_w2 + dw2 * dw2
-        w2 = w2 - self.lr * (1 / (np.sqrt(self.h_w2) + 1e-7)) * dw2
+        w2 = w2 - self.lr * dw2 / (np.sqrt(self.h_w2) + 1e-7)
 
         self.h_b1 = self.h_b1 + db1 * db1
-        b1 = b1 - self.lr * (1 / (np.sqrt(self.h_b1) + 1e-7)) * db1
+        b1 = b1 - self.lr * db1 / (np.sqrt(self.h_b1) + 1e-7)
 
         self.h_b2 = self.h_b2 + db2 * db2
-        b2 = b2 - self.lr * (1 / (np.sqrt(self.h_b2) + 1e-7)) * db2
+        b2 = b2 - self.lr * db2 / (np.sqrt(self.h_b2) + 1e-7)
 
         return w1, w2, b1, b2
 

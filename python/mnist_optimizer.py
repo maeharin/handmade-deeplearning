@@ -20,7 +20,7 @@ def calc_loss(t, y):
 
 
 # Stochastic Gradient Descent
-class SGDOptimizer:
+class SGD:
     def __init__(self, lr=0.01):
         self.lr = lr
 
@@ -32,7 +32,7 @@ class SGDOptimizer:
         return w1, w2, b1, b2
 
 
-class MomentumOptimizer:
+class Momentum:
     def __init__(self, lr=0.01, momentum=0.9):
         self.lr = lr
         self.momentum = momentum
@@ -43,7 +43,7 @@ class MomentumOptimizer:
         self.v_b2 = None
 
     def update_params(self, w1, w2, b1, b2, dw1, dw2, db1, db2):
-        if self.is_initialized == False:
+        if not self.is_initialized:
             self.v_w1 = np.zeros_like(w1)
             self.v_w2 = np.zeros_like(w2)
             self.v_b1 = np.zeros_like(b1)
@@ -51,16 +51,49 @@ class MomentumOptimizer:
             self.is_initialized = True
 
         self.v_w1 = self.momentum * self.v_w1 - self.lr * dw1
-        w1 += self.v_w1
+        w1 = w1 + self.v_w1
 
         self.v_w2 = self.momentum * self.v_w2 - self.lr * dw2
-        w2 += self.v_w2
+        w2 = w2 + self.v_w2
 
         self.v_b1 = self.momentum * self.v_b1 - self.lr * db1
-        db1 += self.v_b1
+        b1 = b1 + self.v_b1
 
         self.v_b2 = self.momentum * self.v_b2 - self.lr * db2
-        db2 += self.v_b2
+        b2 = b2 + self.v_b2
+
+        return w1, w2, b1, b2
+
+
+class AdaGrad:
+    def __init__(self, lr=0.01):
+        self.lr = lr
+        self.is_initialized = False
+        self.h_w1 = None
+        self.h_w2 = None
+        self.h_b1 = None
+        self.h_b2 = None
+
+    def update_params(self, w1, w2, b1, b2, dw1, dw2, db1, db2):
+        if not self.is_initialized:
+            self.h_w1 = np.zeros_like(w1)
+            self.h_w2 = np.zeros_like(w2)
+            self.h_b1 = np.zeros_like(b1)
+            self.h_b2 = np.zeros_like(b2)
+            self.is_initialized = True
+
+        # 勾配の二乗を加算していく
+        self.h_w1 = self.h_w1 + dw1 * dw1
+        w1 = w1 - self.lr * (1 / (np.sqrt(self.h_w1) + 1e-7)) * dw1
+
+        self.h_w2 = self.h_w2 + dw2 * dw2
+        w2 = w2 - self.lr * (1 / (np.sqrt(self.h_w2) + 1e-7)) * dw2
+
+        self.h_b1 = self.h_b1 + db1 * db1
+        b1 = b1 - self.lr * (1 / (np.sqrt(self.h_b1) + 1e-7)) * db1
+
+        self.h_b2 = self.h_b2 + db2 * db2
+        b2 = b2 - self.lr * (1 / (np.sqrt(self.h_b2) + 1e-7)) * db2
 
         return w1, w2, b1, b2
 
@@ -88,8 +121,9 @@ b2 = np.zeros(10).astype('float32')
 
 # learning rate
 lr = 0.01
-#optimizer = SGDOptimizer(lr=lr)
-optimizer = MomentumOptimizer(lr=lr)
+#optimizer = SGD(lr=lr)
+#optimizer = Momentum(lr=lr)
+optimizer = AdaGrad(lr=lr)
 
 # loop epoch
 epochs = 3

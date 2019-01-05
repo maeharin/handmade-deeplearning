@@ -113,32 +113,32 @@ class TwoLayerNet:
     def __init__(self, optimizer):
         self.optimizer = optimizer
         self.layer1 = None
+        self.relu_layer = None
         self.layer2 = None
+        self.softmax_with_loss_layer = None
 
     def train(self, x, t):
         # forward
         y = self._forward(x)
 
-        # delta
-        batch_size = x.shape[0]
-        delta2 = y - t / batch_size # div for batch
-        delta1 = np.matmul(delta2, self.layer2.w.T) * deriv_relu(self.layer1.u)
+        # backward
+        delta2 = self.softmax_with_loss_layer.backward(y, t)
+        dx2 = self.layer2.backward(delta2)
+        delta1 = self.relu_layer.backward(dx2)
+        self.layer1.backward(delta1)
 
-        # compute grad
-        dw2, db2 = self.layer2.backward(delta2)
-        dw1, db1 = self.layer1.backward(delta1)
-
-        # get new param
+        # get new params
         w1, w2, b1, b2 = self.optimizer.update_params(
             w1=self.layer1.w,
             w2=self.layer2.w,
             b1=self.layer1.b,
             b2=self.layer2.b,
-            dw1=dw1,
-            dw2=dw2,
-            db1=db1,
-            db2=db2)
+            dw1=self.layer1.dw,
+            dw2=self.layer2.dw,
+            db1=self.layer1.db,
+            db2=self.layer2.db)
 
+        # update params
         self.layer1.w = w1
         self.layer1.b = b1
         self.layer2.w = w2
@@ -151,15 +151,17 @@ class TwoLayerNet:
 
     def _forward(self, x):
         u1 = self.layer1.forward(x)
-        h1 = relu(u1)
+        h1 = self.relu_layer.forward(u1)
         u2 = self.layer2.forward(h1)
-        return softmax(u2)
+        return self.softmax_with_loss_layer.forward(u2)
 
 
 class Dense:
     def __init__(self, n_in, n_out):
         self.w = initialize_weights_he_normal(n_in, n_out)
         self.b = np.zeros(n_out).astype('float32')
+        self.dw = None
+        self.db = None
         self.x = None
         self.u = None
 
@@ -169,9 +171,31 @@ class Dense:
         return self.u
 
     def backward(self, delta):
-        dw = np.matmul(self.x.T, delta)
-        db = np.sum(delta, axis=0) # sum for batch
-        return dw, db
+        self.dw = np.matmul(self.x.T, delta)
+        self.db = np.sum(delta, axis=0) # sum for batch
+        dx = np.matmul(delta, self.w.T)
+        return dx
+
+
+class SoftmaxWithLoss:
+    def forward(self, x):
+        return softmax(x)
+
+    def backward(self, y, t):
+        batch_size = y.shape[0]
+        return y - t / batch_size # div for batch
+
+
+class Relu:
+    def __init__(self):
+        self.x = None
+
+    def forward(self, x):
+        self.x = x
+        return relu(self.x)
+
+    def backward(self, dx):
+        return dx * deriv_relu(self.x)
 
 
 # load datas
@@ -192,7 +216,9 @@ x_train, x_valid, t_train, t_valid = train_test_split(x_train, t_train, test_siz
 # build network
 network = TwoLayerNet(optimizer=SGD(lr=0.01))
 network.layer1 = Dense(784, 100)
+network.relu_layer = Relu()
 network.layer2 = Dense(100, 10)
+network.softmax_with_loss_layer = SoftmaxWithLoss()
 
 # loop epoch
 epochs = 3
